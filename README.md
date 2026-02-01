@@ -19,7 +19,7 @@ npm install
 crear un archivo .env.local en la raiz del proyecto y completar las siguientes credenciales
 
 #### conexión al backend
-NEXT_PUBLIC_BACK_URL=...
+NEXT_PUBLIC_BACK_URL=http://localhost:3001
 
 #### Cloudinary
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=...
