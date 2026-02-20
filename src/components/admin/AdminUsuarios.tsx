@@ -17,7 +17,12 @@ import {
   CircularProgress,
   Stack,
   TextField,
+  Card,
+  CardContent,
+  Divider,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 import { requireAuthOrRedirect } from "@/lib/requireAuthOrRedirect";
 import { getMe } from "@/lib/authMe";
@@ -59,6 +64,9 @@ export default function AdminUsuarios() {
 
   const [q, setQ] = useState("");
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     if (!term) return rows;
@@ -89,7 +97,11 @@ export default function AdminUsuarios() {
   }, []);
 
   const rolChip = (rol: UsuarioRow["rol"]) =>
-    rol === "ADMIN" ? <Chip label="ADMIN" /> : <Chip label="NORMAL" variant="outlined" />;
+    rol === "ADMIN" ? (
+      <Chip label="ADMIN" />
+    ) : (
+      <Chip label="NORMAL" variant="outlined" />
+    );
 
   const estadoChip = (estado: UsuarioRow["estado"]) => {
     if (estado === "ACTIVO") return <Chip label="ACTIVO" />;
@@ -125,7 +137,8 @@ export default function AdminUsuarios() {
       return;
     }
 
-    const nuevo: "ACTIVO" | "INACTIVO" = u.estado === "ACTIVO" ? "INACTIVO" : "ACTIVO";
+    const nuevo: "ACTIVO" | "INACTIVO" =
+      u.estado === "ACTIVO" ? "INACTIVO" : "ACTIVO";
 
     const ok = confirm(`¿Cambiar estado de ${u.correo} a ${nuevo}?`);
     if (!ok) return;
@@ -142,6 +155,11 @@ export default function AdminUsuarios() {
   };
 
   const onBan = async (u: UsuarioRow) => {
+    if (u.estado === "BANEADO") {
+      alert("Este usuario ya está baneado permanentemente.");
+      return;
+    }
+
     if (me?.id === u.id) {
       alert("No podés banearte a vos mismo.");
       return;
@@ -172,87 +190,196 @@ export default function AdminUsuarios() {
   }
 
   return (
-    <Box sx={{ p: 3, display: "grid", gap: 2 }}>
-      <Typography variant="h5" fontWeight={800}>
+    <Box sx={{ p: { xs: 2, sm: 3 }, display: "grid", gap: 2 }}>
+      <Typography variant="h5" fontWeight={800} sx={{ color: "#93c5fd" }}>
         Panel Admin — Usuarios
       </Typography>
 
       {error ? <Alert severity="error">{error}</Alert> : null}
 
-      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        sx={{ alignItems: { xs: "stretch", sm: "center" } }}
+      >
         <TextField
           label="Buscar por nombre, correo o id"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           size="small"
-          sx={{ minWidth: 320 }}
+          fullWidth
+          sx={{
+            backgroundColor: "#1a2f4b",
+            input: { color: "#93c5fd" },
+            "& .MuiInputLabel-root": { color: "#93c5fd" },
+            "& .MuiInputLabel-root.Mui-focused": { color: "#93c5fd" },
+            "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#1c4375ff",
+            },
+            "&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#93c5fd",
+            },
+            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+              { borderColor: "#93c5fd" },
+          }}
         />
 
-        <Button variant="outlined" onClick={load}>
+        <Button variant="outlined" onClick={load} sx={{ whiteSpace: "nowrap" }}>
           Refrescar
         </Button>
       </Stack>
 
-      <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Correo</TableCell>
-              <TableCell>Rol</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell align="right">Acciones</TableCell>
-            </TableRow>
-          </TableHead>
+      {isMobile ? (
+        <Box sx={{ display: "grid", gap: 2 }}>
+          {filtered.map((u) => {
+            const busy = busyId === u.id;
+            const isBanned = u.estado === "BANEADO";
 
-          <TableBody>
-            {filtered.map((u) => {
-              const busy = busyId === u.id;
+            return (
+              <Card
+                key={u.id}
+                sx={{
+                  borderRadius: 3,
+                  opacity: isBanned ? 0.65 : 1,
+                }}
+              >
+                <CardContent sx={{ display: "grid", gap: 1.2 }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                    <Typography fontWeight={800}>
+                      #{u.id} — {u.nombre}
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      {rolChip(u.rol)}
+                      {estadoChip(u.estado)}
+                    </Box>
+                  </Box>
 
-              return (
-                <TableRow key={u.id}>
-                  <TableCell>{u.id}</TableCell>
-                  <TableCell>{u.nombre}</TableCell>
-                  <TableCell>{u.correo}</TableCell>
-                  <TableCell>{rolChip(u.rol)}</TableCell>
-                  <TableCell>{estadoChip(u.estado)}</TableCell>
+                  <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                    {u.correo}
+                  </Typography>
 
-                  <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <Button variant="outlined" onClick={() => onToggleRol(u)} disabled={busy}>
+                  <Divider />
+
+                  {isBanned ? (
+                    <Button variant="contained" color="error" disabled>
+                      Usuario baneado
+                    </Button>
+                  ) : (
+                    <Stack direction="column" spacing={1}>
+                      <Button
+                        variant="outlined"
+                        onClick={() => onToggleRol(u)}
+                        disabled={busy}
+                        fullWidth
+                      >
                         {u.rol === "ADMIN" ? "Quitar admin" : "Hacer admin"}
                       </Button>
 
                       <Button
                         variant="outlined"
                         onClick={() => onToggleEstado(u)}
-                        disabled={busy || u.estado === "BANEADO"}
+                        disabled={busy}
+                        fullWidth
                       >
                         {u.estado === "ACTIVO" ? "Inactivar" : "Activar"}
                       </Button>
 
-                      <Button variant="contained" color="error" onClick={() => onBan(u)} disabled={busy}>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => onBan(u)}
+                        disabled={busy}
+                        fullWidth
+                      >
                         Ban permanente
                       </Button>
                     </Stack>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+
+          {filtered.length === 0 && (
+            <Paper sx={{ p: 2, borderRadius: 3 }}>
+              <Typography variant="body2" color="text.secondary">
+                No hay usuarios para mostrar.
+              </Typography>
+            </Paper>
+          )}
+        </Box>
+      ) : (
+        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Correo</TableCell>
+                <TableCell>Rol</TableCell>
+                <TableCell>Estado</TableCell>
+                <TableCell align="right">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {filtered.map((u) => {
+                const busy = busyId === u.id;
+                const isBanned = u.estado === "BANEADO";
+
+                return (
+                  <TableRow key={u.id} sx={isBanned ? { opacity: 0.6 } : undefined}>
+                    <TableCell>{u.id}</TableCell>
+                    <TableCell>{u.nombre}</TableCell>
+                    <TableCell>{u.correo}</TableCell>
+                    <TableCell>{rolChip(u.rol)}</TableCell>
+                    <TableCell>{estadoChip(u.estado)}</TableCell>
+
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        {isBanned ? (
+                          <Button variant="contained" color="error" disabled>
+                            Usuario baneado
+                          </Button>
+                        ) : (
+                          <>
+                            <Button variant="outlined" onClick={() => onToggleRol(u)} disabled={busy}>
+                              {u.rol === "ADMIN" ? "Quitar admin" : "Hacer admin"}
+                            </Button>
+
+                            <Button variant="outlined" onClick={() => onToggleEstado(u)} disabled={busy}>
+                              {u.estado === "ACTIVO" ? "Inactivar" : "Activar"}
+                            </Button>
+
+                            <Button
+                              variant="contained"
+                              color="error"
+                              onClick={() => onBan(u)}
+                              disabled={busy}
+                            >
+                              Ban permanente
+                            </Button>
+                          </>
+                        )}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <Typography variant="body2" color="text.secondary">
+                      No hay usuarios para mostrar.
+                    </Typography>
                   </TableCell>
                 </TableRow>
-              );
-            })}
-
-            {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    No hay usuarios para mostrar.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </Box>
   );
 }

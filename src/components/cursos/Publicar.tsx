@@ -8,6 +8,7 @@ import {
   Typography,
   Select,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import { obtenerCategorias } from "@/connect/categorias";
 import { crearCurso } from "@/connect/cursos";
@@ -23,7 +24,9 @@ export default function PublicarCurso() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriaId, setCategoriaId] = useState<number>(0);
 
-  const [usuarioId] = useState<number>(1);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     obtenerCategorias().then(setCategorias).catch(console.error);
@@ -41,35 +44,67 @@ export default function PublicarCurso() {
     setFiles(dt.files);
   };
 
+  const esUrlValida = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!titulo.trim()) {
+      return setError("El título es obligatorio.");
+    }
+
+    if (descripcion.trim().length < 20) {
+      return setError("La descripción debe tener al menos 20 caracteres.");
+    }
+
+    if (!enlace.trim() || !esUrlValida(enlace.trim())) {
+      return setError("Ingresá un enlace válido (https://...).");
+    }
 
     if (!categoriaId) {
-      console.error("Elegí una categoría antes de publicar");
-      return;
+      return setError("Elegí una categoría antes de publicar.");
     }
 
     try {
+      setLoading(true);
+
       const urls = files ? await uploadMany(files) : [];
 
-      const creado = await crearCurso({
-        titulo,
-        descripcion,
-        enlace,
+      await crearCurso({
+        titulo: titulo.trim(),
+        descripcion: descripcion.trim(),
+        enlace: enlace.trim(),
         categoria_id: categoriaId,
         imagenes: urls,
       });
 
-      console.log("Curso creado:", creado);
+      setSuccess("Curso publicado correctamente 🎉");
 
       setTitulo("");
       setDescripcion("");
       setEnlace("");
       setFiles(null);
+      setCategoriaId(0);
 
-      window.location.href = "/";
-    } catch (err) {
-      console.error("Error al publicar curso:", err);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message ??
+          "Ocurrió un error al publicar el curso."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,42 +117,24 @@ export default function PublicarCurso() {
       >
         <Typography variant="h5">Publicar curso</Typography>
 
+        {error && <Alert severity="error">{error}</Alert>}
+        {success && <Alert severity="success">{success}</Alert>}
+
         <TextField
           label="Título"
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
+          error={!titulo.trim() && !!error}
           required
           sx={{
-            
-            input: {
-              color: "#93c5fd",
-            },
-
-           
-            "& .MuiInputLabel-root": {
-              color: "#93c5fd",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#93c5fd",
-            },
-
-           
-            "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+            input: { color: "#93c5fd" },
+            "& .MuiInputLabel-root": { color: "#93c5fd" },
+            "& .MuiOutlinedInput-notchedOutline": {
               borderColor: "#1c4375ff",
             },
-
-           
-            "&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#93c5fd",
-            },
-
-            
-            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-              {
-                borderColor: "#93c5fd",
-              },
           }}
         />
+
         <TextField
           label="Descripción"
           value={descripcion}
@@ -125,61 +142,31 @@ export default function PublicarCurso() {
           required
           multiline
           rows={4}
+          error={descripcion.length > 0 && descripcion.length < 20}
           sx={{
-            "& .MuiInputBase-input": {
-              color: "#93c5fd", 
-            },
-
-            "& .MuiInputLabel-root": {
-              color: "#93c5fd",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#93c5fd",
-            },
-
-            "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+            "& .MuiInputBase-input": { color: "#93c5fd" },
+            "& .MuiInputLabel-root": { color: "#93c5fd" },
+            "& .MuiOutlinedInput-notchedOutline": {
               borderColor: "#1c4375ff",
             },
-            "&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#93c5fd",
-            },
-            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-              {
-                borderColor: "#93c5fd",
-              },
           }}
         />
+
         <TextField
           label="Enlace"
           value={enlace}
           onChange={(e) => setEnlace(e.target.value)}
           required
+          error={!!enlace && !esUrlValida(enlace)}
+          helperText={
+            enlace && !esUrlValida(enlace) ? "Ingresá un enlace válido" : ""
+          }
           sx={{
-           
-            input: {
-              color: "#93c5fd",
-            },
-
-            
-            "& .MuiInputLabel-root": {
-              color: "#93c5fd",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#93c5fd",
-            },
-
-            "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+            input: { color: "#93c5fd" },
+            "& .MuiInputLabel-root": { color: "#93c5fd" },
+            "& .MuiOutlinedInput-notchedOutline": {
               borderColor: "#1c4375ff",
             },
-
-            "&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#93c5fd",
-            },
-
-            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-              {
-                borderColor: "#93c5fd",
-              },
           }}
         />
 
@@ -187,24 +174,13 @@ export default function PublicarCurso() {
           value={categoriaId}
           onChange={(e) => setCategoriaId(Number(e.target.value))}
           displayEmpty
+          error={!categoriaId && !!error}
           sx={{
             color: "#93c5fd",
-
             "& .MuiOutlinedInput-notchedOutline": {
               borderColor: "#1c4375ff",
             },
-
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#93c5fd",
-            },
-
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#93c5fd",
-            },
-
-            "& .MuiSelect-icon": {
-              color: "#93c5fd",
-            },
+            "& .MuiSelect-icon": { color: "#93c5fd" },
           }}
         >
           <MenuItem value={0} disabled>
@@ -231,8 +207,8 @@ export default function PublicarCurso() {
           <Typography variant="body2">1 imagen seleccionada</Typography>
         ) : null}
 
-        <Button type="submit" variant="contained">
-          Publicar
+        <Button type="submit" variant="contained" disabled={loading}>
+          {loading ? "Publicando..." : "Publicar"}
         </Button>
       </Box>
     </div>

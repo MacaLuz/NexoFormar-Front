@@ -23,8 +23,7 @@ import { obtenerCursos } from "@/connect/cursos";
 import { obtenerUsuario, actualizarMiPerfil } from "@/connect/users";
 import { uploadMany } from "@/lib/uploadMany";
 import { getMe, setMe } from "@/lib/authMe";
-import { useRouter } from "next/navigation";
-import { getToken } from "@/lib/authStorage";
+import { formatFechaAR } from "@/lib/date";
 
 type Curso = {
   id: number;
@@ -60,60 +59,56 @@ export default function PerfilPage() {
   const [cursoSeleccionado, setCursoSeleccionado] = useState<Curso | null>(null);
   const menuOpen = Boolean(anchorEl);
 
+  useEffect(() => {
+    const run = async () => {
+      try {
+        setLoading(true);
 
-useEffect(() => {
-  const run = async () => {
-    try {
-      setLoading(true);
+        const me = await obtenerUsuario();
 
-      const me = await obtenerUsuario();
+        const p: Perfil = {
+          id: me.id,
+          nombre: me.nombre,
+          correo: me.correo,
+          fotoUrl: me.fotoUrl ?? null,
+          rol: me.rol,
+        };
 
-      const p: Perfil = {
-        id: me.id,
-        nombre: me.nombre,
-        correo: me.correo,
-        fotoUrl: me.fotoUrl ?? null,
-        rol: me.rol,
-      };
+        setPerfil(p);
+        setNombreEdit(p.nombre);
 
-      setPerfil(p);
-      setNombreEdit(p.nombre);
+        setMe({
+          id: me.id,
+          rol: me.rol,
+          nombre: me.nombre,
+          correo: me.correo,
+          fotoUrl: me.fotoUrl ?? null,
+        });
 
-      setMe({
-        id: me.id,
-        rol: me.rol,
-        nombre: me.nombre,
-        correo: me.correo,
-        fotoUrl: me.fotoUrl ?? null,
-      });
+        const all = await obtenerCursos();
+        const mine = Array.isArray(all)
+          ? all.filter((c: any) => c?.usuario?.id === me.id || c?.usuario_id === me.id)
+          : [];
 
-      const all = await obtenerCursos();
-      const mine = Array.isArray(all)
-        ? all.filter((c: any) => c?.usuario?.id === me.id || c?.usuario_id === me.id)
-        : [];
+        const activos = mine.filter((c: any) => (c.estado ? c.estado === "ACTIVO" : true));
+        setCursos(activos);
+      } catch (e: any) {
+        console.error("Error perfil:", e);
 
-      const activos = mine.filter((c: any) => (c.estado ? c.estado === "ACTIVO" : true));
-      setCursos(activos);
-    } catch (e: any) {
-      console.error("Error perfil:", e);
-
-      const status = e?.response?.status;
-      if (e?.message === "NO_TOKEN" || status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("me");
-        window.location.href = "/login?next=/perfil";
-        return;
+        const status = e?.response?.status;
+        if (e?.message === "NO_TOKEN" || status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("me");
+          window.location.href = "/login?next=/perfil";
+          return;
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  run();
-}, []);
-
-
-
+    run();
+  }, []);
 
   const scroll = (dir: "left" | "right") => {
     const el = scrollRef.current;
@@ -178,17 +173,17 @@ useEffect(() => {
     setCursoSeleccionado(null);
   };
 
-const onEditarCurso = () => {
-  if (!cursoSeleccionado) return;
-  cerrarMenuCurso();
-  window.location.href = `/cursos/editar/${cursoSeleccionado.id}`;
-};
+  const onEditarCurso = () => {
+    if (!cursoSeleccionado) return;
+    cerrarMenuCurso();
+    window.location.href = `/cursos/editar/${cursoSeleccionado.id}`;
+  };
 
-const onEliminarCurso = () => {
-  if (!cursoSeleccionado) return;
-  cerrarMenuCurso();
-  window.location.href = `/cursos/eliminar/${cursoSeleccionado.id}`;
-};
+  const onEliminarCurso = () => {
+    if (!cursoSeleccionado) return;
+    cerrarMenuCurso();
+    window.location.href = `/cursos/eliminar/${cursoSeleccionado.id}`;
+  };
 
   if (loading) {
     return (
@@ -199,24 +194,41 @@ const onEliminarCurso = () => {
   }
 
   return (
-    <Box sx={{ backgroundColor: "#0b1c32", minHeight: "100vh", p: 3 }}>
+    <Box sx={{ backgroundColor: "#0b1c32", minHeight: "100vh", p: { xs: 2, sm: 3 } }}>
       <Box
         sx={{
           maxWidth: 1000,
           mx: "auto",
           backgroundColor: "#0f2745",
           borderRadius: 4,
-          p: 3,
+          p: { xs: 2, sm: 3 },
           boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
           color: "#93c5fd",
         }}
       >
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Box sx={{ position: "relative" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: { xs: 2, md: 3 },
+            alignItems: { xs: "stretch", md: "center" },
+          }}
+        >
+          <Box
+            sx={{
+              display: "grid",
+              justifyItems: { xs: "center", md: "start" },
+              textAlign: { xs: "center", md: "left" },
+            }}
+          >
             <Avatar
               src={perfil?.fotoUrl || "/placeholder-avatar.png"}
               alt={perfil?.nombre || "Avatar"}
-              sx={{ width: 112, height: 112, border: "2px solid #93c5fd" }}
+              sx={{
+                width: { xs: 96, sm: 112 },
+                height: { xs: 96, sm: 112 },
+                border: "2px solid #93c5fd",
+              }}
             />
 
             <Button
@@ -226,6 +238,7 @@ const onEliminarCurso = () => {
               disabled={saving}
               sx={{
                 mt: 1,
+                width: { xs: "100%", sm: "auto" },
                 borderColor: "#93c5fd",
                 color: "#93c5fd",
                 "&:hover": { borderColor: "#93c5fd", backgroundColor: "rgba(147,197,253,0.08)" },
@@ -246,7 +259,15 @@ const onEliminarCurso = () => {
               Nombre de usuario
             </Typography>
 
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 0.5 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 1,
+                alignItems: { xs: "stretch", sm: "center" },
+                mt: 0.5,
+              }}
+            >
               <TextField
                 value={nombreEdit}
                 onChange={(e) => setNombreEdit(e.target.value)}
@@ -257,23 +278,36 @@ const onEliminarCurso = () => {
                   "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(147,197,253,0.35)" },
                 }}
               />
+
               <Button
                 variant="contained"
                 onClick={onGuardarNombre}
                 disabled={saving || !perfil || nombreEdit.trim() === perfil.nombre}
-                sx={{ backgroundColor: "#0b1c32" }}
+                sx={{
+                  backgroundColor: "#0b1c32",
+                  width: { xs: "100%", sm: "auto" },
+                  whiteSpace: "nowrap",
+                }}
               >
                 Guardar
               </Button>
             </Box>
 
-            <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                opacity: 0.9,
+                mt: 1,
+                wordBreak: "break-word",
+                textAlign: { xs: "center", md: "left" },
+              }}
+            >
               {perfil?.correo}
             </Typography>
           </Box>
         </Box>
 
-        <Divider sx={{ my: 3, borderColor: "rgba(147,197,253,0.2)" }} />
+        <Divider sx={{ my: { xs: 2, sm: 3 }, borderColor: "rgba(147,197,253,0.2)" }} />
 
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
           Mis cursos activos
@@ -283,7 +317,10 @@ const onEliminarCurso = () => {
           <Typography sx={{ opacity: 0.9 }}>Todavía no publicaste cursos.</Typography>
         ) : (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton onClick={() => scroll("left")} sx={{ color: "#93c5fd" }}>
+            <IconButton
+              onClick={() => scroll("left")}
+              sx={{ color: "#93c5fd", display: { xs: "none", sm: "inline-flex" } }}
+            >
               <ArrowBackIos />
             </IconButton>
 
@@ -295,20 +332,21 @@ const onEliminarCurso = () => {
                 gap: 2,
                 pb: 1,
                 scrollBehavior: "smooth",
+                width: "100%",
                 "&::-webkit-scrollbar": { height: 8 },
                 "&::-webkit-scrollbar-thumb": { background: "rgba(147,197,253,0.3)", borderRadius: 8 },
               }}
             >
               {cursos.map((c) => {
                 const img = c.imagenes?.[0] || "/placeholder.jpg";
-                const fecha = c.fechaPublicacion?.split("T")[0] ?? "";
+                const fecha = formatFechaAR(c.fechaPublicacion);
 
                 return (
                   <Card
                     key={c.id}
                     sx={{
-                      minWidth: 280,
-                      maxWidth: 280,
+                      minWidth: { xs: 240, sm: 280 },
+                      maxWidth: { xs: 240, sm: 280 },
                       flexShrink: 0,
                       borderRadius: 3,
                       overflow: "hidden",
@@ -355,7 +393,10 @@ const onEliminarCurso = () => {
               })}
             </Box>
 
-            <IconButton onClick={() => scroll("right")} sx={{ color: "#93c5fd" }}>
+            <IconButton
+              onClick={() => scroll("right")}
+              sx={{ color: "#93c5fd", display: { xs: "none", sm: "inline-flex" } }}
+            >
               <ArrowForwardIos />
             </IconButton>
           </Box>

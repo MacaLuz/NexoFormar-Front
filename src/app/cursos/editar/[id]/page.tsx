@@ -1,4 +1,4 @@
-import EditarCursoCliente from "@/components/EditarCurso";
+import EditarCursoCliente from "@/components/cursos/EditarCurso";
 
 export default async function Page({
   params,

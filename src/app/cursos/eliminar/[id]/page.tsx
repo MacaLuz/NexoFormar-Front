@@ -1,4 +1,4 @@
-import EliminarCursoCliente from "@/components/EliminarCurso";
+import EliminarCursoCliente from "@/components/cursos/EliminarCurso";
 
 export default async function Page({
   params,

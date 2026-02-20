@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { getMe } from "@/lib/authMe";
 import { requireAuthOrRedirect } from "@/lib/requireAuthOrRedirect";
+import { formatFechaAR } from "@/lib/date";
 
 type Curso = {
   id: number;
@@ -50,13 +51,7 @@ export default function MainCard({ data }: Props) {
 
   const primeraImagen = data.imagenes?.[0];
 
-  const soloFecha = data.fechaPublicacion
-    ? new Date(data.fechaPublicacion).toLocaleDateString("es-AR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      })
-    : "Fecha no disponible";
+  const soloFecha = formatFechaAR(data.fechaPublicacion);
 
   const handleVerMas = () => {
     const next = `/publicacion/${data.id}`;
@@ -93,7 +88,6 @@ export default function MainCard({ data }: Props) {
         sx={{
           position: "relative",
           pb: 2,
-
           minHeight: 112,
         }}
       >
@@ -102,20 +96,12 @@ export default function MainCard({ data }: Props) {
             <IconButton
               onClick={(e) => setAnchorEl(e.currentTarget)}
               aria-label="opciones"
-              sx={{
-                position: "absolute",
-                top: 6,
-                right: 6,
-              }}
+              sx={{ position: "absolute", top: 6, right: 6 }}
             >
               <MoreVertIcon />
             </IconButton>
 
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={() => setAnchorEl(null)}
-            >
+            <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
               <MenuItem
                 onClick={() => {
                   setAnchorEl(null);
@@ -141,7 +127,6 @@ export default function MainCard({ data }: Props) {
           variant="h6"
           sx={{
             fontWeight: 800,
-
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
@@ -155,7 +140,7 @@ export default function MainCard({ data }: Props) {
           Categoría: {data.categoria.nombre}
         </Typography>
 
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" display="block">
           Publicado: {soloFecha}
         </Typography>
       </CardContent>

@@ -1,9 +1,9 @@
-import PublicarCurso from "@/components/Publicar";
-import RequireAuth from "@/components/RequireAuth";
+import PublicarCurso from "@/components/cursos/Publicar";
+import RequireAuth from "@/components/auth/RequireAuth";
 
 export default function Page() {
     return (
-      <RequireAuth>
+      <RequireAuth nextOverride="/publicar">
        <PublicarCurso />
       </RequireAuth>
   

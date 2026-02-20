@@ -12,8 +12,8 @@ const MenuLateral = () => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const router = useRouter();
-  const logged = isLoggedIn();
 
+  const logged = isLoggedIn();
   const me = getMe();
   const isAdmin = !!me && me.rol === "ADMIN";
 
@@ -31,6 +31,37 @@ const MenuLateral = () => {
   };
 
   const items: React.ReactNode[] = [];
+
+  if (logged && isAdmin) {
+    items.push(
+      <MenuItem key="admin-title" disabled sx={{ opacity: 1 }}>
+        <strong>Panel Admin</strong>
+      </MenuItem>
+    );
+
+    items.push(
+      <Link
+        href="/admin/usuarios"
+        key="admin-usuarios"
+        style={{ textDecoration: "none", color: "inherit" }}
+      >
+        <MenuItem onClick={handleClose}>Usuarios</MenuItem>
+      </Link>
+    );
+
+    items.push(
+      <Link
+        href="/admin/categorias"
+        key="admin-categorias"
+        style={{ textDecoration: "none", color: "inherit" }}
+      >
+        <MenuItem onClick={handleClose}>Categorías</MenuItem>
+      </Link>
+    );
+
+    items.push(<Divider key="div-admin-top" />);
+  }
+
 
   if (!logged) {
     items.push(
@@ -64,20 +95,6 @@ const MenuLateral = () => {
         style={{ textDecoration: "none", color: "inherit" }}
       >
         <MenuItem onClick={handleClose}>Publicar</MenuItem>
-      </Link>
-    );
-  }
-
-  if (logged && isAdmin) {
-    items.push(
-      <Link
-        href="/admin"
-        key="admin"
-        style={{ textDecoration: "none", color: "inherit" }}
-      >
-        <MenuItem onClick={handleClose}>
-          <strong>Panel Admin</strong>
-        </MenuItem>
       </Link>
     );
   }

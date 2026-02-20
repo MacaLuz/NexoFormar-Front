@@ -1,4 +1,4 @@
-import RequireAuth from "@/components/RequireAuth";
+import RequireAuth from "@/components/auth/RequireAuth";
 import PerfilPage from "@/components/Perfil";
 
 export default function Page() {

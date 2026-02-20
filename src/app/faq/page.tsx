@@ -1,4 +1,4 @@
-import FAQContent from "@/components/FAQContent";
+import FAQContent from "@/components/legal/FAQContent";
 
 export default function Page() {
     return (

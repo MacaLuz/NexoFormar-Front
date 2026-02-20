@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import BuscarResultados from '@/components/BuscarResultados';
+import BuscarResultados from '@/components/cursos/BuscarResultados';
 
 export default function BuscarCursosPage() {
   return (

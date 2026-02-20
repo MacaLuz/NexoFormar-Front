@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import CursoCard from '@/components/MainCard';
+import CursoCard from '@/components/cursos/MainCard';
 import { Curso } from '@/interfaces/Curso';
 import { buscarCursos, obtenerCursos } from '@/connect/cursos';
 

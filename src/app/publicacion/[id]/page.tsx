@@ -1,4 +1,4 @@
-import DetailCard from "@/components/DetailCard";
+import DetailCard from "@/components/cursos/DetailCard";
 
 export default async function Page({
   params,

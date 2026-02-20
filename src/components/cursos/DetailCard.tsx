@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import RequireAuth from "./RequireAuth";
+import RequireAuth from "../auth/RequireAuth";
 import type { Curso } from "@/interfaces/Curso";
 
 export default function DetailCard({ id }: { id: string }) {

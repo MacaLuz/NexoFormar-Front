@@ -1,5 +1,5 @@
 import { Curso } from "@/interfaces/Curso";
-import CursoCard from "../components/MainCard";
+import CursoCard from "../components/cursos/MainCard";
 
 function renderizarCursos(cursos?: Curso[]) {
   const lista = Array.isArray(cursos) ? cursos : [];

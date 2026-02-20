@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { TextField, Button, Avatar, IconButton } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import BasicMenu from "./Menu";
@@ -14,15 +14,18 @@ const Header: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const showSearch =
-    pathname !== "/login" &&
-    pathname !== "/register" &&
-    pathname !== "/recuperar";
+  const showSearch = useMemo(() => {
+    if (!pathname) return false;
+
+    if (pathname === "/") return true;
+    if (pathname.startsWith("/cursos")) return true;
+
+    return false;
+  }, [pathname]);
 
   const [keywords, setKeywords] = useState("");
   const [categorias, setCategorias] = useState<string[]>([]);
 
- 
   const [me, setMeState] = useState<Me | null>(null);
 
   useEffect(() => {
@@ -100,10 +103,13 @@ const Header: React.FC = () => {
               "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#1c4375ff",
               },
-              "&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
-                { borderColor: "#93c5fd" },
+              "&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#93c5fd",
+              },
               "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                { borderColor: "#93c5fd" },
+                {
+                  borderColor: "#93c5fd",
+                },
             }}
           />
 
@@ -117,7 +123,12 @@ const Header: React.FC = () => {
         <IconButton onClick={goPerfil} aria-label="Perfil">
           <Avatar
             src={me?.fotoUrl || undefined}
-            sx={{ bgcolor: "#1a2f4b", color: "#93c5fd", width: 36, height: 36 }}
+            sx={{
+              bgcolor: "#1a2f4b",
+              color: "#93c5fd",
+              width: 36,
+              height: 36,
+            }}
           >
             <PersonIcon />
           </Avatar>

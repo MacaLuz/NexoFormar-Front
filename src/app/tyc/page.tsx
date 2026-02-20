@@ -1,4 +1,4 @@
-import TerminosPage from "@/components/TyC";
+import TerminosPage from "@/components/legal/TyC";
 
 export default function Page() {
     return (
