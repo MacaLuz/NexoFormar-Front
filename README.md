@@ -29,4 +29,3 @@ NEXT_PUBLIC_CLOUDINARY_FOLDER=...
 ### 5. Ejecutar el proyecto
 
 npm run dev
-
