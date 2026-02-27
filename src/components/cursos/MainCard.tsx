@@ -19,17 +19,8 @@ import { useMemo, useState } from "react";
 import { getMe } from "@/lib/authMe";
 import { requireAuthOrRedirect } from "@/lib/requireAuthOrRedirect";
 import { formatFechaAR } from "@/lib/date";
+import { Curso } from "@/interfaces/Curso";
 
-type Curso = {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  imagenes?: string[];
-  categoria: Categoria;
-  fechaPublicacion?: string;
-  enlace: string;
-  usuario?: { id: number };
-};
 
 interface Props {
   data: Curso;

@@ -20,10 +20,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
 import { requireAuthOrRedirect } from "@/lib/requireAuthOrRedirect";
 import { getMe } from "@/lib/authMe";
-
+import { Categoria } from "@/interfaces/Categoria";
 import { obtenerCategorias, crearCategoria, eliminarCategoria } from "@/connect/categorias";
-
-type Categoria = { id: number; nombre: string };
 
 export default function AdminCategorias() {
   const router = useRouter();

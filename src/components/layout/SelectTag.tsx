@@ -10,11 +10,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
 import { obtenerCategorias } from '@/connect/categorias';
+import { Categoria } from '@/interfaces/Categoria';
 
-type Categoria = {
-  id: number;
-  nombre: string;
-};
+
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;

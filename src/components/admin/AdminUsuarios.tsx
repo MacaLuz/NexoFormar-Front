@@ -26,6 +26,7 @@ import { useTheme } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 import { requireAuthOrRedirect } from "@/lib/requireAuthOrRedirect";
 import { getMe } from "@/lib/authMe";
+import { Usuario } from "@/interfaces/Usuario";
 
 import {
   obtenerUsuarios,
@@ -34,15 +35,7 @@ import {
   banearUsuario,
 } from "@/connect/users";
 
-type UsuarioRow = {
-  id: number;
-  nombre: string;
-  correo: string;
-  rol: "ADMIN" | "NORMAL";
-  estado: "ACTIVO" | "INACTIVO" | "BANEADO";
-  fotoUrl?: string | null;
-  fechaCreacion?: string;
-};
+type UsuarioRow = Usuario;
 
 export default function AdminUsuarios() {
   const router = useRouter();
